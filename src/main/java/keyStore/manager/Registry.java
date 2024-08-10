@@ -1,12 +1,12 @@
 package keyStore.manager;
 
-public class Key {
+public class Registry {
 
 	private String user;
 	private String password;
 	private String website;
 	
-	public Key(String user, String password, String website) {
+	public Registry(String user, String password, String website) {
 		super();
 		this.user = user;
 		this.password = password;

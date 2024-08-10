@@ -2,16 +2,16 @@ package keyStore.manager.interfaces;
 
 import java.util.List;
 
-import keyStore.manager.Key;
+import keyStore.manager.Registry;
 
 public interface KeysManagerInterface {
 
-	public void save(Key key);
+	public void save(Registry key);
 
-	public void delete(Key key);
+	public void delete(Registry key);
 
-	public List<Key> realAll();
+	public List<Registry> realAll();
 
-	public void update(Key key);
+	public void update(Registry key);
 
 }

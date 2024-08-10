@@ -1,6 +1,7 @@
 package keyStore.screen;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.EventQueue;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -22,6 +23,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
+import javax.swing.UIManager;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.table.DefaultTableModel;
@@ -31,17 +33,18 @@ import com.jgoodies.forms.layout.FormLayout;
 import com.jgoodies.forms.layout.RowSpec;
 
 import keyStore.manager.FilesManager;
+import keyStore.manager.interfaces.KeysManagerInterface;
 import keyStore.manager.service.KeysManagerService;
 import keyStore.screen.enums.SimpleKeyStoreTableEnum;
 import keyStore.screen.jframes.Alerts;
-import keyStore.screen.jframes.ButtonEditor;
-import keyStore.screen.jframes.ButtonRenderer;
+import keyStore.screen.jframes.MultiButtonEditor;
+import keyStore.screen.jframes.MultiButtonRenderer;
 
 public class SimpleKeyStore {
 
 	private JFrame frame;
 	private JTable registriesTable;
-	private KeysManagerService keysManagerService = new KeysManagerService();
+	private KeysManagerInterface keysManagerService;
 	private JTextField userTextField;
 	private JTextField passwordTextField;
 	private JTextField password2TextField;
@@ -79,19 +82,24 @@ public class SimpleKeyStore {
 	 * Initialize the contents of the frame.
 	 */
 	private void initialize() {
+		keysManagerService = new KeysManagerService();
+		
+		setLookAndFeel();
 		frame = new JFrame();
-		frame.setBounds(100, 100, 450, 300);
+		frame.setTitle("MATMINI - KeyStore");
+		frame.getContentPane().setBackground(new Color(255, 255, 255));
+		frame.setBounds(200, 200, 1000, 450);
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		frame.setLayout(new BorderLayout());
 
 		JTabbedPane optionsTablePane = new JTabbedPane(JTabbedPane.TOP);
-		
-		
+
 		frame.getContentPane().add(optionsTablePane, BorderLayout.CENTER);
 
 		JPanel keyListPannel = new JPanel();
 		optionsTablePane.addTab("Available Keys", null, keyListPannel, null);
-		keyListPannel.setLayout(new FormLayout(new ColumnSpec[] { ColumnSpec.decode("429px:grow"), },
-				new RowSpec[] { RowSpec.decode("233px:grow"), }));
+		keyListPannel.setLayout(new FormLayout(new ColumnSpec[] { ColumnSpec.decode("500px:grow"), },
+				new RowSpec[] { RowSpec.decode("255px:grow"), }));
 
 		JScrollPane scrollPane = new JScrollPane();
 		keyListPannel.add(scrollPane, "1, 1, fill, fill");
@@ -99,13 +107,12 @@ public class SimpleKeyStore {
 		buildRegistriesTable(scrollPane);
 
 		optionsTablePane.addChangeListener(new ChangeListener() {
-			
 			@Override
 			public void stateChanged(ChangeEvent e) {
 				buildRegistriesTable(scrollPane);
 			}
 		});
-		
+
 		JPanel keyToolsPannel = new JPanel();
 		optionsTablePane.addTab("Tools", null, keyToolsPannel, null);
 		GridBagLayout gbl_keyToolsPannel = new GridBagLayout();
@@ -210,10 +217,9 @@ public class SimpleKeyStore {
 				try {
 					validRegistryFields();
 					try {
-						keysManagerService.save(RegistriesHandler.getKeyFromInput(userTextField.getText(),
+						keysManagerService.save(RegistriesHandler.registryFromInput(userTextField.getText(),
 								passwordTextField.getText(), websiteTextField.getText()));
-						Alerts.callAlertBox("Registry added", "Success",
-								JOptionPane.INFORMATION_MESSAGE);
+						Alerts.callAlertBox("Registry added", "Success", JOptionPane.INFORMATION_MESSAGE);
 					} catch (KeyAlreadyExistsException ke) {
 						Alerts.callAlertBox("User just registred for this website!", "Error",
 								JOptionPane.ERROR_MESSAGE);
@@ -230,13 +236,30 @@ public class SimpleKeyStore {
 		panelAddRegistry.add(btnAddNewRegistry, gbc_btnAddNewRegistry);
 	}
 
+	private void setLookAndFeel() {
+		try {
+			String osName = System.getProperty("os.name").toLowerCase();
+			if (osName.contains("windows")) {
+				UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.WindowsLookAndFeel");
+			} else if (osName.contains("linux")) {
+				UIManager.setLookAndFeel("com.sun.java.swing.plaf.gtk.GTKLookAndFeel");
+			} else {
+				UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+			}
+		} catch (Exception e) {
+			System.err.println("Failed to set LookAndFeel: " + e.getMessage());
+		}
+	}
+
 	private void buildRegistriesTable(JScrollPane scrollPane) {
 		registriesTable = new JTable();
-		registriesTable.setModel(new DefaultTableModel(RegistriesHandler.parseListToObject(keysManagerService.realAll()),
-				SimpleKeyStoreTableEnum.getAllColumns().toArray(new String[0])));
+		registriesTable
+				.setModel(new DefaultTableModel(RegistriesHandler.parseListToObject(keysManagerService.realAll()),
+						SimpleKeyStoreTableEnum.getAllColumns().toArray(new String[0])));
 		scrollPane.setViewportView(registriesTable);
-		registriesTable.getColumn("Copy").setCellRenderer(new ButtonRenderer());
-		registriesTable.getColumn("Copy").setCellEditor(new ButtonEditor(new JCheckBox(), registriesTable));
+		registriesTable.getColumnModel().getColumn(3).setCellRenderer(new MultiButtonRenderer());
+		registriesTable.getColumnModel().getColumn(3)
+				.setCellEditor(new MultiButtonEditor(new JCheckBox(), registriesTable));
 	}
 
 	private void validRegistryFields() {
