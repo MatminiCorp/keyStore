@@ -6,7 +6,7 @@ import java.util.stream.Stream;
 
 public enum SimpleKeyStoreTableEnum {
 
-	USER("User"), WEBSITE("Website"), PASSWORD("Password"), Copy("Copy");
+	USER("User"), PASSWORD("Password"), WEBSITE("Website"), Copy("Copy");
 
 	private String column;
 

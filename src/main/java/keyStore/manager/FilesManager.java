@@ -33,12 +33,12 @@ public class FilesManager {
 		return instance;
 	}
 
-	public Map<String, Key> getContentAsMap() {
-		Map<String, Key> map = GsonUtil.fromJson(getContentAsString(), new TypeToken<Map<String, Key>>(){}.getType());
+	public Map<String, Registry> getContentAsMap() {
+		Map<String, Registry> map = GsonUtil.fromJson(getContentAsString(), new TypeToken<Map<String, Registry>>(){}.getType());
 		return map != null ? map : new HashMap<>();
 	}
 	
-	public void overwriteContentAsMap(Map<String, Key> keys) {
+	public void overwriteContentAsMap(Map<String, Registry> keys) {
 		
 		overwriteFile(GsonUtil.toJson(keys));
 	}
