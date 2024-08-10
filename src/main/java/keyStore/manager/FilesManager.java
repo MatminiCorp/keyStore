@@ -39,7 +39,6 @@ public class FilesManager {
 	}
 	
 	public void overwriteContentAsMap(Map<String, Registry> keys) {
-		
 		overwriteFile(GsonUtil.toJson(keys));
 	}
 
