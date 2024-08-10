@@ -2,15 +2,11 @@ package keyStore.screen;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.EventQueue;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 
 import javax.management.openmbean.KeyAlreadyExistsException;
 import javax.swing.JButton;
@@ -32,7 +28,6 @@ import com.jgoodies.forms.layout.ColumnSpec;
 import com.jgoodies.forms.layout.FormLayout;
 import com.jgoodies.forms.layout.RowSpec;
 
-import keyStore.manager.FilesManager;
 import keyStore.manager.interfaces.KeysManagerInterface;
 import keyStore.manager.service.KeysManagerService;
 import keyStore.screen.enums.SimpleKeyStoreTableEnum;
@@ -40,7 +35,7 @@ import keyStore.screen.jframes.Alerts;
 import keyStore.screen.jframes.MultiButtonEditor;
 import keyStore.screen.jframes.MultiButtonRenderer;
 
-public class SimpleKeyStore {
+public class SimpleKeyStore implements TableUpdateListener {
 
 	private JFrame frame;
 	private JTable registriesTable;
@@ -50,40 +45,15 @@ public class SimpleKeyStore {
 	private JTextField password2TextField;
 	private JTextField websiteTextField;
 
-	/**
-	 * Launch the application.
-	 */
-	public static void main(String[] args) {
-		EventQueue.invokeLater(new Runnable() {
-			public void run() {
-				try {
-					Path file = Paths.get("C:\\clones\\keyStore\\src\\main\\resources\\pass.json");
-					if (!file.toFile().exists()) {
-						Files.createFile(file);
-					}
-					FilesManager files = FilesManager.getInstance(file.toFile());
-					SimpleKeyStore window = new SimpleKeyStore();
-					window.frame.setVisible(true);
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			}
-		});
-	}
+	private JScrollPane scrollPane = new JScrollPane();
 
-	/**
-	 * Create the application.
-	 */
 	public SimpleKeyStore() {
 		initialize();
 	}
 
-	/**
-	 * Initialize the contents of the frame.
-	 */
 	private void initialize() {
 		keysManagerService = new KeysManagerService();
-		
+
 		setLookAndFeel();
 		frame = new JFrame();
 		frame.setTitle("MATMINI - KeyStore");
@@ -93,7 +63,6 @@ public class SimpleKeyStore {
 		frame.setLayout(new BorderLayout());
 
 		JTabbedPane optionsTablePane = new JTabbedPane(JTabbedPane.TOP);
-
 		frame.getContentPane().add(optionsTablePane, BorderLayout.CENTER);
 
 		JPanel keyListPannel = new JPanel();
@@ -101,15 +70,14 @@ public class SimpleKeyStore {
 		keyListPannel.setLayout(new FormLayout(new ColumnSpec[] { ColumnSpec.decode("500px:grow"), },
 				new RowSpec[] { RowSpec.decode("255px:grow"), }));
 
-		JScrollPane scrollPane = new JScrollPane();
 		keyListPannel.add(scrollPane, "1, 1, fill, fill");
 
-		buildRegistriesTable(scrollPane);
+		buildRegistriesTable();
 
 		optionsTablePane.addChangeListener(new ChangeListener() {
 			@Override
 			public void stateChanged(ChangeEvent e) {
-				buildRegistriesTable(scrollPane);
+				buildRegistriesTable();
 			}
 		});
 
@@ -215,7 +183,10 @@ public class SimpleKeyStore {
 		btnAddNewRegistry.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				try {
-					validRegistryFields();
+					boolean isValidRegistryFields = isValidRegistryFields();
+					if (!isValidRegistryFields) {
+						return;
+					}
 					try {
 						keysManagerService.save(RegistriesHandler.registryFromInput(userTextField.getText(),
 								passwordTextField.getText(), websiteTextField.getText()));
@@ -234,6 +205,8 @@ public class SimpleKeyStore {
 		gbc_btnAddNewRegistry.gridx = 10;
 		gbc_btnAddNewRegistry.gridy = 5;
 		panelAddRegistry.add(btnAddNewRegistry, gbc_btnAddNewRegistry);
+		
+		frame.setVisible(true);
 	}
 
 	private void setLookAndFeel() {
@@ -251,36 +224,50 @@ public class SimpleKeyStore {
 		}
 	}
 
-	private void buildRegistriesTable(JScrollPane scrollPane) {
+	private void buildRegistriesTable() {
 		registriesTable = new JTable();
 		registriesTable
 				.setModel(new DefaultTableModel(RegistriesHandler.parseListToObject(keysManagerService.realAll()),
 						SimpleKeyStoreTableEnum.getAllColumns().toArray(new String[0])));
 		scrollPane.setViewportView(registriesTable);
+
+		MultiButtonEditor multiButtonEditor = new MultiButtonEditor(new JCheckBox(), registriesTable);
+		multiButtonEditor.addTableUpdateListener(this);
 		registriesTable.getColumnModel().getColumn(3).setCellRenderer(new MultiButtonRenderer());
-		registriesTable.getColumnModel().getColumn(3)
-				.setCellEditor(new MultiButtonEditor(new JCheckBox(), registriesTable));
+		registriesTable.getColumnModel().getColumn(3).setCellEditor(multiButtonEditor);
 	}
 
-	private void validRegistryFields() {
+	private boolean isValidRegistryFields() {
 		if (userTextField.getText() == null || userTextField.getText().isEmpty()
 				|| userTextField.getText().contains(" ")) {
 			Alerts.callAlertBox("User is empty or has white space", "Error", JOptionPane.ERROR_MESSAGE);
+			return false;
 		}
 		if (passwordTextField.getText() == null || passwordTextField.getText().isEmpty()
 				|| passwordTextField.getText().contains(" ")) {
 			Alerts.callAlertBox("Password is empty or has white space", "Error", JOptionPane.ERROR_MESSAGE);
+			return false;
 		}
 		if (password2TextField.getText() == null || password2TextField.getText().isEmpty()
 				|| password2TextField.getText().contains(" ")) {
 			Alerts.callAlertBox("Confirm password is empty or has white space", "Error", JOptionPane.ERROR_MESSAGE);
+			return false;
 		}
 		if (websiteTextField.getText() == null || websiteTextField.getText().isEmpty()
 				|| websiteTextField.getText().contains(" ")) {
 			Alerts.callAlertBox("Website is empty or has white space", "Error", JOptionPane.ERROR_MESSAGE);
+			return false;
 		}
 		if (!passwordTextField.getText().equals(password2TextField.getText())) {
 			Alerts.callAlertBox("Passwords are not equals", "Error", JOptionPane.ERROR_MESSAGE);
+			return false;
 		}
+		return true;
 	}
+
+	@Override
+	public void onTableUpdate() {
+		buildRegistriesTable();
+	}
+
 }

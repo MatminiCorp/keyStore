@@ -44,8 +44,12 @@ public class KeysManagerService implements KeysManagerInterface {
 	}
 
 	@Override
-	public void update(Registry key) {
-		// TODO Auto-generated method stub
+	public void update(Registry registry) {
+		Map<String, Registry> currentRegistries = filesManager.getContentAsMap();
+		Registry oldRegistry = currentRegistries.get(RegistriesHandler.getKeyMap(registry));
+		oldRegistry.setPassword(registry.getPassword());
+		currentRegistries.put(RegistriesHandler.getKeyMap(registry), oldRegistry);
+		filesManager.overwriteContentAsMap(currentRegistries);
 	}
 
 
