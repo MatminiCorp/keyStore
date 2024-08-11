@@ -6,6 +6,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 import keyStore.manager.FilesManager;
+import keyStore.screen.Login;
 import keyStore.screen.SimpleKeyStore;
 
 public class Main {
@@ -14,12 +15,7 @@ public class Main {
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
 				try {
-					Path file = Paths.get("C:\\clones\\keyStore\\src\\main\\resources\\pass.json");
-					if (!file.toFile().exists()) {
-						Files.createFile(file);
-					}
-					FilesManager.getInstance(file.toFile());
-					new SimpleKeyStore();
+					new Login();
 				} catch (Exception e) {
 					e.printStackTrace();
 				}

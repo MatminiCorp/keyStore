@@ -28,6 +28,7 @@ import com.jgoodies.forms.layout.ColumnSpec;
 import com.jgoodies.forms.layout.FormLayout;
 import com.jgoodies.forms.layout.RowSpec;
 
+import keyStore.decypher.AESCipher128;
 import keyStore.manager.interfaces.KeysManagerInterface;
 import keyStore.manager.service.KeysManagerService;
 import keyStore.screen.enums.SimpleKeyStoreTableEnum;
@@ -188,8 +189,9 @@ public class SimpleKeyStore implements TableUpdateListener {
 						return;
 					}
 					try {
+						AESCipher128 aes = AESCipher128.getInstance();
 						keysManagerService.save(RegistriesHandler.registryFromInput(userTextField.getText(),
-								passwordTextField.getText(), websiteTextField.getText()));
+								aes.encrypt(passwordTextField.getText()), websiteTextField.getText()));
 						Alerts.callAlertBox("Registry added", "Success", JOptionPane.INFORMATION_MESSAGE);
 					} catch (KeyAlreadyExistsException ke) {
 						Alerts.callAlertBox("User just registred for this website!", "Error",
@@ -205,7 +207,7 @@ public class SimpleKeyStore implements TableUpdateListener {
 		gbc_btnAddNewRegistry.gridx = 10;
 		gbc_btnAddNewRegistry.gridy = 5;
 		panelAddRegistry.add(btnAddNewRegistry, gbc_btnAddNewRegistry);
-		
+
 		frame.setVisible(true);
 	}
 

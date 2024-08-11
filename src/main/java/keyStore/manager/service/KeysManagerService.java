@@ -17,22 +17,22 @@ public class KeysManagerService implements KeysManagerInterface {
 	private FilesManager filesManager = FilesManager.getInstance();
 
 	@Override
-	public void save(Registry key) {
+	public void save(Registry registry) {
 		Map<String, Registry> currentRegistries = filesManager.getContentAsMap();
-		if (currentRegistries.get(RegistriesHandler.getKeyMap(key)) != null) {
-			throw new KeyAlreadyExistsException("The user '" + key.getUser() + "' already exists in the registry for link '" + key.getWebsite() + "'");
+		if (currentRegistries.get(RegistriesHandler.getKeyMap(registry)) != null) {
+			throw new KeyAlreadyExistsException("The user '" + registry.getUser() + "' already exists in the registry for link '" + registry.getWebsite() + "'");
 		}
-		currentRegistries.putAll(RegistriesHandler.parseRegistryToMap(key));
+		currentRegistries.putAll(RegistriesHandler.parseRegistryToMap(registry));
 		filesManager.overwriteContentAsMap(currentRegistries);
 	}
 
 	@Override
-	public void delete(Registry key) {
+	public void delete(Registry registry) {
 		Map<String, Registry> currentRegistries = filesManager.getContentAsMap();
-		if (currentRegistries.get(RegistriesHandler.getKeyMap(key)) == null) {
-			throw new InvalidKeyException("The user '" + key.getUser() + "' does not exists in the registry for link '" + key.getWebsite() + "'");
+		if (currentRegistries.get(RegistriesHandler.getKeyMap(registry)) == null) {
+			throw new InvalidKeyException("The user '" + registry.getUser() + "' does not exists in the registry for link '" + registry.getWebsite() + "'");
 		}
-		currentRegistries.remove(RegistriesHandler.getKeyMap(key));
+		currentRegistries.remove(RegistriesHandler.getKeyMap(registry));
 		filesManager.overwriteContentAsMap(currentRegistries);
 	}
 

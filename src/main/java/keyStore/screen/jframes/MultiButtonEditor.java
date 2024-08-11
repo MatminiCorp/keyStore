@@ -16,6 +16,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTable;
 
+import keyStore.decypher.AESCipher128;
 import keyStore.manager.Registry;
 import keyStore.manager.interfaces.KeysManagerInterface;
 import keyStore.manager.service.KeysManagerService;
@@ -30,6 +31,7 @@ public class MultiButtonEditor extends DefaultCellEditor {
 	private JButton removeButton;
 	private KeysManagerInterface keysManager = new KeysManagerService();
 	private List<TableUpdateListener> tableUpdateListenerList = new ArrayList<>();
+	private AESCipher128 aes = AESCipher128.getInstance();
 
 	public MultiButtonEditor(JCheckBox checkBox, JTable table) {
 		super(checkBox);
@@ -46,26 +48,34 @@ public class MultiButtonEditor extends DefaultCellEditor {
 
 		copyButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				int row = table.getSelectedRow();
-				if (row != -1) {
-					String value = (String) table.getValueAt(row, 0);
-					Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection(value), null);
-					JOptionPane.showMessageDialog(panel, "Valor copiado: " + value);
+				try {
+					int row = table.getSelectedRow();
+					if (row != -1) {
+						String value = aes.decrypt((String) table.getValueAt(row, 1));
+						Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection(value), null);
+						JOptionPane.showMessageDialog(panel, "Valor copiado para o user: " + (String) table.getValueAt(row, 0));
+					}
+				} catch (Exception e2) {
+					e2.printStackTrace();
 				}
 			}
 		});
 
 		editButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				int row = table.getSelectedRow();
-				if (row != -1) {
-					String value = (String) table.getValueAt(row, 0);
-					String newValue = JOptionPane.showInputDialog(panel, "Edit value:", value);
-					keysManager.update(
-							new Registry((String) table.getValueAt(row, 0), newValue, (String) table.getValueAt(row, 2)));
-					if (newValue != null) {
-						notifyTableUpdate();
+				try {
+					int row = table.getSelectedRow();
+					if (row != -1) {
+						String value = (String) table.getValueAt(row, 0);
+						String newValue = JOptionPane.showInputDialog(panel, "Edit value:", value);
+						keysManager.update(new Registry((String) table.getValueAt(row, 0),
+								aes.encrypt((String) newValue), (String) table.getValueAt(row, 2)));
+						if (newValue != null) {
+							notifyTableUpdate();
+						}
 					}
+				} catch (Exception e1) {
+					e1.printStackTrace();
 				}
 			}
 		});
@@ -97,14 +107,14 @@ public class MultiButtonEditor extends DefaultCellEditor {
 	protected void fireEditingStopped() {
 		super.fireEditingStopped();
 	}
-	
-    public void addTableUpdateListener(TableUpdateListener listener) {
-        this.tableUpdateListenerList.add(listener);
-    }
 
-    private void notifyTableUpdate() {
-    	for (TableUpdateListener tableUpdateListener : tableUpdateListenerList) {
-    		tableUpdateListener.onTableUpdate();
+	public void addTableUpdateListener(TableUpdateListener listener) {
+		this.tableUpdateListenerList.add(listener);
+	}
+
+	private void notifyTableUpdate() {
+		for (TableUpdateListener tableUpdateListener : tableUpdateListenerList) {
+			tableUpdateListener.onTableUpdate();
 		}
-    }
+	}
 }

@@ -13,10 +13,22 @@ import javax.crypto.spec.SecretKeySpec;
 
 public class AESCipher128 {
 
-	private final String secret;
+	private static String secret;
+	private static AESCipher128 instance;
+	
+	private AESCipher128() {
+	}
+	
+	public static AESCipher128 getInstance(String secret) {
+		if (instance == null) {
+			instance = new AESCipher128();
+			AESCipher128.secret = secret;
+		}
+		return instance;
+	}
 
-	public AESCipher128(String secret) {
-		this.secret = secret;
+	public static AESCipher128 getInstance() {
+		return instance;
 	}
 
 	public String encrypt(String input) throws Exception {

@@ -1,54 +1,52 @@
-package keyStore;
+package keyStore.screen;
 
 import java.awt.BorderLayout;
-import java.awt.EventQueue;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.prefs.Preferences;
 
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.UIManager;
+
+import keyStore.decypher.SecretKeyValidator;
+import keyStore.manager.FilesManager;
+import keyStore.screen.jframes.Alerts;
 
 public class Login {
 
 	private JFrame frame;
 	private JTextField secretTextField;
 	private JTextField registryFileTextField;
+	
+	private Preferences pref;
 
-	/**
-	 * Launch the application.
-	 */
-	public static void main(String[] args) {
-		EventQueue.invokeLater(new Runnable() {
-			public void run() {
-				try {
-					Login window = new Login();
-					window.frame.setVisible(true);
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			}
-		});
-	}
-
-	/**
-	 * Create the application.
-	 */
 	public Login() {
 		initialize();
+		
+		try {
+			pref = Preferences.userNodeForPackage(getClass());
+		} catch (Exception e) {
+			pref = null;
+		}
+		
+		if(pref != null) {
+			registryFileTextField.setText(pref.get("registryFileTextField", null));
+		}
 	}
 
-	/**
-	 * Initialize the contents of the frame.
-	 */
 	private void initialize() {
 		setLookAndFeel();
 		frame = new JFrame();
@@ -120,18 +118,33 @@ public class Login {
 				}
 			}
 		});
-				
-						JButton btnNewButton = new JButton("Login");
-						btnNewButton.addActionListener(new ActionListener() {
-							public void actionPerformed(ActionEvent e) {
-							}
-						});
-						GridBagConstraints gbc_btnNewButton = new GridBagConstraints();
-						gbc_btnNewButton.fill = GridBagConstraints.BOTH;
-						gbc_btnNewButton.gridx = 10;
-						gbc_btnNewButton.gridy = 3;
-						panel.add(btnNewButton, gbc_btnNewButton);
 
+		JButton btnNewButton = new JButton("Login");
+		btnNewButton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				try {
+					boolean isValid = validFields();
+					if (!isValid) {
+						return;
+					}
+					if(pref != null) {
+						pref.put("registryFileTextField", registryFileTextField.getText());
+					}
+					frame.dispose();
+					new SimpleKeyStore();
+				} catch (Exception e2) {
+					e2.printStackTrace();
+				}
+			}
+
+		});
+		GridBagConstraints gbc_btnNewButton = new GridBagConstraints();
+		gbc_btnNewButton.fill = GridBagConstraints.BOTH;
+		gbc_btnNewButton.gridx = 10;
+		gbc_btnNewButton.gridy = 3;
+		panel.add(btnNewButton, gbc_btnNewButton);
+
+		frame.setVisible(true);
 	}
 
 	private void setLookAndFeel() {
@@ -147,6 +160,28 @@ public class Login {
 		} catch (Exception e) {
 			System.err.println("Failed to set LookAndFeel: " + e.getMessage());
 		}
+	}
+
+	private boolean validFields() throws IOException {
+		if (secretTextField.getText() == null || secretTextField.getText().isEmpty()) {
+			Alerts.callAlertBox("Secret is empty", "Error", JOptionPane.ERROR_MESSAGE);
+			return false;
+		}
+		if (registryFileTextField.getText() == null || registryFileTextField.getText().isEmpty()) {
+			Alerts.callAlertBox("Missing file Path", "Error", JOptionPane.ERROR_MESSAGE);
+			return false;
+		}
+		
+		if (!Paths.get(registryFileTextField.getText()).toFile().exists()) {
+			Files.createFile(Paths.get(registryFileTextField.getText()));
+		}
+		FilesManager.getInstance(Paths.get(registryFileTextField.getText()).toFile());
+		
+		if (!SecretKeyValidator.isValidSecretByFile(secretTextField.getText())) {
+			Alerts.callAlertBox("Secret key does not fit on this file", "Error", JOptionPane.ERROR_MESSAGE);
+			return false;
+		}
+		return true;
 	}
 
 }
