@@ -1,5 +1,6 @@
 package com.matmini.keyStore.screen.jframes;
 
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.GridLayout;
 import java.awt.Toolkit;
@@ -9,9 +10,11 @@ import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.swing.BoxLayout;
 import javax.swing.DefaultCellEditor;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
+import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTable;
@@ -53,7 +56,8 @@ public class MultiButtonEditor extends DefaultCellEditor {
 					if (row != -1) {
 						String value = aes.decrypt((String) table.getValueAt(row, 1));
 						Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection(value), null);
-						JOptionPane.showMessageDialog(panel, "Valor copiado para o user: " + (String) table.getValueAt(row, 0));
+						JOptionPane.showMessageDialog(panel,
+								"Valor copiado para o user: " + (String) table.getValueAt(row, 0));
 					}
 				} catch (Exception e2) {
 					e2.printStackTrace();
@@ -83,12 +87,37 @@ public class MultiButtonEditor extends DefaultCellEditor {
 		removeButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				int row = table.getSelectedRow();
-				keysManager.delete(
-						new Registry((String) table.getValueAt(row, 0), null, (String) table.getValueAt(row, 2)));
 				if (row != -1) {
-					notifyTableUpdate();
+					JPanel panel = ConfirmCommandPannel(table, row);
+		            int confirm = JOptionPane.showConfirmDialog(
+		                null, 
+		                panel, 
+		                "Remove Registry", 
+		                JOptionPane.YES_NO_OPTION, 
+		                JOptionPane.WARNING_MESSAGE
+		            );
+		            
+					if (confirm == JOptionPane.YES_OPTION) {
+						keysManager.delete(new Registry((String) table.getValueAt(row, 0), null,
+								(String) table.getValueAt(row, 2)));
+						notifyTableUpdate();
+					}
 				}
 
+			}
+
+			private JPanel ConfirmCommandPannel(JTable table, int row) {
+				JPanel panel = new JPanel();
+				panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+
+				JLabel alertLabel = new JLabel("Warning: This action cannot be undone!");
+				alertLabel.setForeground(Color.RED);
+				panel.add(alertLabel);
+
+				JLabel confirmLabel = new JLabel("Are you sure that you want to remove user '" + table.getValueAt(row, 0) + "' for website '"
+						+ table.getValueAt(row, 2) + "'");
+				panel.add(confirmLabel);
+				return panel;
 			}
 		});
 	}

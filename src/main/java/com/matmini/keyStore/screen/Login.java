@@ -25,6 +25,7 @@ import javax.swing.UIManager;
 import com.matmini.keyStore.decypher.SecretKeyValidator;
 import com.matmini.keyStore.manager.FilesManager;
 import com.matmini.keyStore.screen.jframes.Alerts;
+import com.matmini.keyStore.util.ConstantsParameters;
 
 public class Login {
 
@@ -51,7 +52,7 @@ public class Login {
 	private void initialize() {
 		setLookAndFeel();
 		frame = new JFrame();
-		frame.setTitle("MATMINI - KeyStore");
+		frame.setTitle(ConstantsParameters.FRAME_TITLE);
 		frame.getContentPane().setBackground(new Color(255, 255, 255));
 		frame.setBounds(100, 100, 450, 150);
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
