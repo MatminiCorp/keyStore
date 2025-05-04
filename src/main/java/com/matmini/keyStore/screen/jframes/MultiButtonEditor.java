@@ -8,7 +8,9 @@ import java.awt.datatransfer.StringSelection;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.swing.BoxLayout;
 import javax.swing.DefaultCellEditor;
@@ -24,6 +26,7 @@ import com.matmini.keyStore.manager.Registry;
 import com.matmini.keyStore.manager.interfaces.KeysManagerInterface;
 import com.matmini.keyStore.manager.interfaces.TableUpdateListener;
 import com.matmini.keyStore.manager.service.KeysManagerService;
+import com.matmini.keyStore.screen.enums.SimpleKeyStoreTableEnum;
 import com.matmini.keyStore.util.ConstantsParameters;
 
 public class MultiButtonEditor extends DefaultCellEditor {
@@ -40,7 +43,6 @@ public class MultiButtonEditor extends DefaultCellEditor {
 		super(checkBox);
 
 		panel = new JPanel(new GridLayout(1, 3));
-
 		copyButton = new JButton(ConstantsParameters.ACTION_BUTTON_COPY);
 		editButton = new JButton(ConstantsParameters.ACTION_BUTTON_UPDATE);
 		removeButton = new JButton(ConstantsParameters.ACTION_BUTTON_DELETE);
@@ -54,13 +56,15 @@ public class MultiButtonEditor extends DefaultCellEditor {
 				try {
 					int row = table.getSelectedRow();
 					if (row != -1) {
-						String value = aes.decrypt((String) table.getValueAt(row, 1));
-						Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection(value), null);
+						String encryptedPassword = (String) table.getValueAt(row, SimpleKeyStoreTableEnum.PASSWORD.getCode());
+						String decryptedPassword = aes.decrypt(encryptedPassword);
+						Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection(decryptedPassword), null);
 						JOptionPane.showMessageDialog(panel,
-								"Valor copiado para o user: " + (String) table.getValueAt(row, 0));
+								"Senha copiada para o usuário: " + (String) table.getValueAt(row, SimpleKeyStoreTableEnum.USERNAME.getCode()));
 					}
 				} catch (Exception e2) {
 					e2.printStackTrace();
+					JOptionPane.showMessageDialog(panel, "Erro ao copiar a senha.", "Erro", JOptionPane.ERROR_MESSAGE);
 				}
 			}
 		});
@@ -70,13 +74,28 @@ public class MultiButtonEditor extends DefaultCellEditor {
 				try {
 					int row = table.getSelectedRow();
 					if (row != -1) {
-						String value = (String) table.getValueAt(row, 0);
-						String newValue = JOptionPane.showInputDialog(panel, "Edit value:", value);
-						keysManager.update(new Registry((String) table.getValueAt(row, 0),
-								aes.encrypt((String) newValue), (String) table.getValueAt(row, 2)));
-						if (newValue != null) {
-							notifyTableUpdate();
-						}
+						Map<String, String> initialValues = new HashMap<>();
+						initialValues.put(SimpleKeyStoreTableEnum.NAME.getColumn(), (String) table.getValueAt(row, SimpleKeyStoreTableEnum.NAME.getCode()));
+						initialValues.put(SimpleKeyStoreTableEnum.URL.getColumn(), (String) table.getValueAt(row, SimpleKeyStoreTableEnum.URL.getCode()));
+						initialValues.put(SimpleKeyStoreTableEnum.USERNAME.getColumn(), (String) table.getValueAt(row, SimpleKeyStoreTableEnum.USERNAME.getCode()));
+						initialValues.put(SimpleKeyStoreTableEnum.NOTE.getColumn(), (String) table.getValueAt(row, SimpleKeyStoreTableEnum.NOTE.getCode()));
+
+						PasswordEditWizardDialog dialog = new PasswordEditWizardDialog(null, initialValues, updatedValues -> {
+							try {
+								keysManager.update(new Registry(
+									updatedValues.get(SimpleKeyStoreTableEnum.NAME.getColumn()),
+									updatedValues.get(SimpleKeyStoreTableEnum.URL.getColumn()),
+									updatedValues.get(SimpleKeyStoreTableEnum.USERNAME.getColumn()),
+									aes.encrypt(updatedValues.get(SimpleKeyStoreTableEnum.PASSWORD.getColumn())),
+									updatedValues.get(SimpleKeyStoreTableEnum.NOTE.getColumn())
+								));
+								notifyTableUpdate();
+							} catch (Exception ex) {
+								ex.printStackTrace();
+								JOptionPane.showMessageDialog(null, "Erro ao atualizar registro", "Erro", JOptionPane.ERROR_MESSAGE);
+							}
+						});
+						dialog.setVisible(true);
 					}
 				} catch (Exception e1) {
 					e1.printStackTrace();
@@ -98,8 +117,13 @@ public class MultiButtonEditor extends DefaultCellEditor {
 		            );
 		            
 					if (confirm == JOptionPane.YES_OPTION) {
-						keysManager.delete(new Registry((String) table.getValueAt(row, 0), null,
-								(String) table.getValueAt(row, 2)));
+						keysManager.delete(new Registry(
+								(String) table.getValueAt(row, SimpleKeyStoreTableEnum.NAME.getCode()),
+								(String) table.getValueAt(row, SimpleKeyStoreTableEnum.URL.getCode()),
+								(String) table.getValueAt(row, SimpleKeyStoreTableEnum.USERNAME.getCode()),
+								null,
+								(String) table.getValueAt(row, SimpleKeyStoreTableEnum.NOTE.getCode())
+							));
 						notifyTableUpdate();
 					}
 				}
@@ -114,8 +138,8 @@ public class MultiButtonEditor extends DefaultCellEditor {
 				alertLabel.setForeground(Color.RED);
 				panel.add(alertLabel);
 
-				JLabel confirmLabel = new JLabel("Are you sure that you want to remove user '" + table.getValueAt(row, 0) + "' for website '"
-						+ table.getValueAt(row, 2) + "'");
+				JLabel confirmLabel = new JLabel("Are you sure that you want to remove user '" + table.getValueAt(row, SimpleKeyStoreTableEnum.USERNAME.getCode()) + "' for website '"
+						+ table.getValueAt(row, SimpleKeyStoreTableEnum.URL.getCode()) + "'");
 				panel.add(confirmLabel);
 				return panel;
 			}

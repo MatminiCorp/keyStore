@@ -1,6 +1,5 @@
 package com.matmini.keyStore.screen;
 
-import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -11,6 +10,8 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.prefs.Preferences;
 
 import javax.swing.JButton;
@@ -22,29 +23,36 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.UIManager;
 
+import com.matmini.keyStore.decypher.AESCipher128;
 import com.matmini.keyStore.decypher.SecretKeyValidator;
 import com.matmini.keyStore.manager.FilesManager;
+import com.matmini.keyStore.manager.Registry;
+import com.matmini.keyStore.manager.interfaces.KeysManagerInterface;
+import com.matmini.keyStore.manager.service.GFileProcessService;
+import com.matmini.keyStore.manager.service.KeysManagerService;
+import com.matmini.keyStore.screen.handlers.RegistriesHandler;
 import com.matmini.keyStore.screen.jframes.Alerts;
 import com.matmini.keyStore.util.ConstantsParameters;
+import com.matmini.keyStore.util.CsvFileDuplicator;
 
 public class Login {
 
 	private JFrame frame;
 	private JTextField secretTextField;
 	private JTextField registryFileTextField;
-	
+
 	private Preferences pref;
 
 	public Login() {
 		initialize();
-		
+
 		try {
 			pref = Preferences.userNodeForPackage(getClass());
 		} catch (Exception e) {
 			pref = null;
 		}
-		
-		if(pref != null) {
+
+		if (pref != null) {
 			registryFileTextField.setText(pref.get("registryFileTextField", null));
 		}
 	}
@@ -56,16 +64,14 @@ public class Login {
 		frame.getContentPane().setBackground(new Color(255, 255, 255));
 		frame.setBounds(100, 100, 450, 150);
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		frame.setLayout(new BorderLayout());
 
 		JPanel panel = new JPanel();
-		frame.getContentPane().add(panel, BorderLayout.CENTER);
+		panel.setBounds(0, 0, 436, 113);
 		GridBagLayout gbl_panel = new GridBagLayout();
-		gbl_panel.columnWidths = new int[] { 80, 22, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-		gbl_panel.rowHeights = new int[] { 0, 0, 0, 0, 0 };
-		gbl_panel.columnWeights = new double[] { 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
-				Double.MIN_VALUE };
-		gbl_panel.rowWeights = new double[] { 0.0, 0.0, 0.0, 0.0, Double.MIN_VALUE };
+		gbl_panel.columnWidths = new int[] { 54, 276, 79, 0 };
+		gbl_panel.rowHeights = new int[] { 19, 21, 21, 0 };
+		gbl_panel.columnWeights = new double[] { 0.0, 1.0, 0.0, Double.MIN_VALUE };
+		gbl_panel.rowWeights = new double[] { 0.0, 0.0, 0.0, Double.MIN_VALUE };
 		panel.setLayout(gbl_panel);
 
 		JLabel lblNewLabel = new JLabel("Secret");
@@ -78,9 +84,9 @@ public class Login {
 
 		secretTextField = new JTextField();
 		GridBagConstraints gbc_secretTextField = new GridBagConstraints();
-		gbc_secretTextField.gridwidth = 10;
-		gbc_secretTextField.insets = new Insets(0, 0, 5, 0);
 		gbc_secretTextField.fill = GridBagConstraints.HORIZONTAL;
+		gbc_secretTextField.insets = new Insets(0, 0, 5, 0);
+		gbc_secretTextField.gridwidth = 2;
 		gbc_secretTextField.gridx = 1;
 		gbc_secretTextField.gridy = 0;
 		panel.add(secretTextField, gbc_secretTextField);
@@ -96,9 +102,8 @@ public class Login {
 
 		registryFileTextField = new JTextField();
 		GridBagConstraints gbc_registryFileTextField = new GridBagConstraints();
-		gbc_registryFileTextField.gridwidth = 9;
-		gbc_registryFileTextField.insets = new Insets(0, 0, 5, 5);
 		gbc_registryFileTextField.fill = GridBagConstraints.BOTH;
+		gbc_registryFileTextField.insets = new Insets(0, 0, 5, 5);
 		gbc_registryFileTextField.gridx = 1;
 		gbc_registryFileTextField.gridy = 1;
 		panel.add(registryFileTextField, gbc_registryFileTextField);
@@ -108,7 +113,7 @@ public class Login {
 		GridBagConstraints gbc_fileChooserButton = new GridBagConstraints();
 		gbc_fileChooserButton.fill = GridBagConstraints.BOTH;
 		gbc_fileChooserButton.insets = new Insets(0, 0, 5, 0);
-		gbc_fileChooserButton.gridx = 10;
+		gbc_fileChooserButton.gridx = 2;
 		gbc_fileChooserButton.gridy = 1;
 		panel.add(fileChooserButton, gbc_fileChooserButton);
 
@@ -123,16 +128,18 @@ public class Login {
 				}
 			}
 		});
+		frame.getContentPane().setLayout(null);
+		frame.getContentPane().add(panel);
 
-		JButton btnNewButton = new JButton("Login");
-		btnNewButton.addActionListener(new ActionListener() {
+		JButton btnLoginButton = new JButton("Login");
+		btnLoginButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				try {
 					boolean isValid = validFields();
 					if (!isValid) {
 						return;
 					}
-					if(pref != null) {
+					if (pref != null) {
 						pref.put("registryFileTextField", registryFileTextField.getText());
 					}
 					frame.dispose();
@@ -143,11 +150,67 @@ public class Login {
 			}
 
 		});
-		GridBagConstraints gbc_btnNewButton = new GridBagConstraints();
-		gbc_btnNewButton.fill = GridBagConstraints.BOTH;
-		gbc_btnNewButton.gridx = 10;
-		gbc_btnNewButton.gridy = 3;
-		panel.add(btnNewButton, gbc_btnNewButton);
+		GridBagConstraints gbc_btnLoginButton = new GridBagConstraints();
+		gbc_btnLoginButton.insets = new Insets(0, 0, 0, 5);
+		gbc_btnLoginButton.fill = GridBagConstraints.BOTH;
+		gbc_btnLoginButton.gridx = 1;
+		gbc_btnLoginButton.gridy = 2;
+		panel.add(btnLoginButton, gbc_btnLoginButton);
+
+		JButton btnEncryptButton = new JButton("Encrypt");
+		btnEncryptButton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				try {
+					if (registryFileTextField.getText() == null || registryFileTextField.getText().isEmpty()) {
+						Alerts.callAlertBox("Missing file Path", "Error", JOptionPane.ERROR_MESSAGE);
+						return;
+					}
+					System.out.println(registryFileTextField.getText());
+					if (!Paths.get(registryFileTextField.getText()).toFile().exists()) {
+						Alerts.callAlertBox("Missing file Path", "Error", JOptionPane.ERROR_MESSAGE);
+					}
+					String oldRegistryFile = registryFileTextField.getText();
+					
+					File file = CsvFileDuplicator.createEditedJsonCopy(registryFileTextField.getText());
+					if (file == null) {
+						Alerts.callAlertBox("Google File is empty", "Error", JOptionPane.ERROR_MESSAGE);
+						return;
+					}
+					registryFileTextField.setText(file.getAbsolutePath());
+					
+					boolean isValid = validFields();
+					if (!isValid) {
+						return;
+					}
+					
+					KeysManagerInterface keysManagerService = new KeysManagerService();
+					int newPassword = JOptionPane.showConfirmDialog(panel, "Import Google passwords?", "Confirm Process", 0);
+					if (newPassword == 0) {
+						List<Registry> gRegistries = GFileProcessService.processFile(oldRegistryFile);
+						FilesManager.getInstance(Paths.get(registryFileTextField.getText()).toFile());
+						List<Registry> errorToImport = new ArrayList<>();
+						for (Registry registry : gRegistries) {
+							if (registry.getPassword() != null) {
+								registry.setPassword(AESCipher128.getInstance().encrypt(registry.getPassword()));
+								keysManagerService.save(registry);
+							} else {
+								errorToImport.add(registry);
+							}
+						}
+						System.out.println();
+					} else {
+						return;
+					}
+				} catch (Exception ex) {
+					// TODO: handle exception
+				}
+			}
+		});
+		GridBagConstraints gbc_btnEncryptButton = new GridBagConstraints();
+		gbc_btnEncryptButton.fill = GridBagConstraints.BOTH;
+		gbc_btnEncryptButton.gridx = 2;
+		gbc_btnEncryptButton.gridy = 2;
+		panel.add(btnEncryptButton, gbc_btnEncryptButton);
 
 		frame.setVisible(true);
 	}
@@ -176,12 +239,12 @@ public class Login {
 			Alerts.callAlertBox("Missing file Path", "Error", JOptionPane.ERROR_MESSAGE);
 			return false;
 		}
-		
+
 		if (!Paths.get(registryFileTextField.getText()).toFile().exists()) {
 			Files.createFile(Paths.get(registryFileTextField.getText()));
 		}
 		FilesManager.getInstance(Paths.get(registryFileTextField.getText()).toFile());
-		
+
 		if (!SecretKeyValidator.isValidSecretByFile(secretTextField.getText())) {
 			Alerts.callAlertBox("Secret key does not fit on this file", "Error", JOptionPane.ERROR_MESSAGE);
 			return false;

@@ -3,6 +3,8 @@ package com.matmini.keyStore.screen.handlers;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.SortedMap;
+import java.util.TreeMap;
 
 import com.matmini.keyStore.manager.Registry;
 import com.matmini.keyStore.util.MapFormatterUtil;
@@ -10,7 +12,7 @@ import com.matmini.keyStore.util.MapFormatterUtil;
 public class RegistriesHandler {
 
 	public static Object[][] parseListToObject(List<Registry> list) {
-		Map<String, Registry> map = new HashMap<>();
+		SortedMap<String, Registry> map = new TreeMap<>();
 		for (Registry registry : list) {
 			map.put(getKeyMap(registry), registry);
 		}
@@ -24,12 +26,17 @@ public class RegistriesHandler {
 	}
 
 	public static String getKeyMap(Registry registry) {
-		return registry.getUser().concat(registry.getWebsite());
+		if (registry.getName() != null && registry.getUrl() != null && registry.getUsername() != null) {
+			return registry.getName().concat(registry.getUrl()).concat(registry.getUsername());
+		} else if (registry.getName() != null && registry.getUrl() != null) {
+			return registry.getName().concat(registry.getUrl());
+		} else {
+			return registry.getName();
+		}
 	}
 
-	public static Registry registryFromInput(String user, String password, String website) {
-		return new Registry(user, password, website);
-
+	public static Registry registryFromInput(String name, String url, String username, String password, String note) {
+		return new Registry(name, url, username, password, note);
 	}
 
 }

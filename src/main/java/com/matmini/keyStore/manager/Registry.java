@@ -2,23 +2,42 @@ package com.matmini.keyStore.manager;
 
 public class Registry {
 
-	private String user;
+	private String name;
+	private String url;
+	private String username;
 	private String password;
-	private String website;
-	
-	public Registry(String user, String password, String website) {
-		super();
-		this.user = user;
+	private String note;
+
+	public Registry(String name, String url, String username, String password, String note) {
+		this.name = name;
+		this.url = url;
+		this.username = username;
 		this.password = password;
-		this.website = website;
+		this.note = note;
 	}
 
-	public String getUser() {
-		return user;
+	public String getName() {
+		return name;
 	}
 
-	public void setUser(String user) {
-		this.user = user;
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	public String getUrl() {
+		return url;
+	}
+
+	public void setUrl(String url) {
+		this.url = url;
+	}
+
+	public String getUsername() {
+		return username;
+	}
+
+	public void setUsername(String username) {
+		this.username = username;
 	}
 
 	public String getPassword() {
@@ -29,17 +48,17 @@ public class Registry {
 		this.password = password;
 	}
 
-	public String getWebsite() {
-		return website;
+	public String getNote() {
+		return note;
 	}
 
-	public void setWebsite(String website) {
-		this.website = website;
+	public void setNote(String note) {
+		this.note = note;
 	}
 
 	@Override
 	public String toString() {
-		return "Keys [user=" + user + ", password=" + password + ", website=" + website + "]";
+		return "Registry [name=" + name + ", url=" + url + ", username=" + username + 
+		       ", password=" + password + ", note=" + note + "]";
 	}
-
 }

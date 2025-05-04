@@ -7,6 +7,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import com.google.gson.reflect.TypeToken;
@@ -33,10 +34,11 @@ public class FilesManager {
 	}
 
 	public Map<String, Registry> getContentAsMap() {
-		Map<String, Registry> map = GsonUtil.fromJson(getContentAsString(), new TypeToken<Map<String, Registry>>(){}.getType());
+		Map<String, Registry> map = GsonUtil.fromJson(getContentAsString(), new TypeToken<Map<String, Registry>>() {
+		}.getType());
 		return map != null ? map : new HashMap<>();
 	}
-	
+
 	public void overwriteContentAsMap(Map<String, Registry> keys) {
 		overwriteFile(GsonUtil.toJson(keys));
 	}
@@ -62,5 +64,13 @@ public class FilesManager {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+	}
+
+	public void importOrReplaceAll(List<Registry> newEntries) {
+		Map<String, Registry> current = getContentAsMap();
+		for (Registry registry : newEntries) {
+			current.put(registry.getName(), registry);
+		}
+		overwriteContentAsMap(current);
 	}
 }

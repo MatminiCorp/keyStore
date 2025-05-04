@@ -13,5 +13,7 @@ public interface KeysManagerInterface {
 	public List<Registry> realAll();
 
 	public void update(Registry key);
+	
+	public List<Registry> realAllByNameLike(String nameFilter);
 
 }
