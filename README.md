@@ -41,3 +41,5 @@ The option to add a new record can be accessed under **_Tools > Add Registry_**:
 The new record will be displayed in the list:
 
 ![Record Listing](https://github.com/user-attachments/assets/d23699c7-8964-4bbc-a41f-d47604a64a93)
+
+📄 See [CHANGELOG](./CHANGELOG.md) for version history and upcoming features.
