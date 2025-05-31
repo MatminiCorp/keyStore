@@ -33,8 +33,10 @@ import com.jgoodies.forms.layout.RowSpec;
 import com.matmini.keyStore.decypher.AESCipher128;
 import com.matmini.keyStore.manager.Registry;
 import com.matmini.keyStore.manager.interfaces.KeysManagerInterface;
+import com.matmini.keyStore.manager.interfaces.RegistryHandlerInterface;
 import com.matmini.keyStore.manager.interfaces.TableUpdateListener;
 import com.matmini.keyStore.manager.service.KeysManagerService;
+import com.matmini.keyStore.manager.service.RegistryHandlerImpl;
 import com.matmini.keyStore.screen.enums.SimpleKeyStoreTableEnum;
 import com.matmini.keyStore.screen.handlers.RegistriesHandler;
 import com.matmini.keyStore.screen.jframes.Alerts;
@@ -64,7 +66,8 @@ public class SimpleKeyStore implements TableUpdateListener {
   }
   
   private void initialize() {
-    keysManagerService = new KeysManagerService();
+    RegistryHandlerInterface handler = new RegistryHandlerImpl();
+    keysManagerService = new KeysManagerService(handler);
     
     setLookAndFeel();
     frame = new JFrame();

@@ -11,33 +11,38 @@ import javax.management.openmbean.KeyAlreadyExistsException;
 import com.matmini.keyStore.manager.FilesManager;
 import com.matmini.keyStore.manager.Registry;
 import com.matmini.keyStore.manager.interfaces.KeysManagerInterface;
-import com.matmini.keyStore.screen.handlers.RegistriesHandler;
+import com.matmini.keyStore.manager.interfaces.RegistryHandlerInterface;
 
 public class KeysManagerService implements KeysManagerInterface {
   
   private FilesManager filesManager = FilesManager.getInstance();
+  private final RegistryHandlerInterface handler;
+
+  public KeysManagerService(RegistryHandlerInterface handler) {
+      this.handler = handler;
+  }
   
   @Override
   public void save(Registry registry) {
     Map<String, Registry> currentRegistries = filesManager.getContentAsMap();
-    if (currentRegistries.get(RegistriesHandler.getKeyMap(registry)) != null) {
+    if (currentRegistries.get(handler.getKeyMap(registry)) != null) {
       throw new KeyAlreadyExistsException("The name '" + registry.getName()
           + "' already exists in the registry for link '" + registry.getUrl()
           + "'");
     }
-    currentRegistries.putAll(RegistriesHandler.parseRegistryToMap(registry));
+    currentRegistries.putAll(handler.parseRegistryToMap(registry));
     filesManager.overwriteContentAsMap(currentRegistries);
   }
   
   @Override
   public void delete(Registry registry) {
     Map<String, Registry> currentRegistries = filesManager.getContentAsMap();
-    if (currentRegistries.get(RegistriesHandler.getKeyMap(registry)) == null) {
+    if (currentRegistries.get(handler.getKeyMap(registry)) == null) {
       throw new InvalidKeyException("The user '" + registry.getName()
           + "' does not exists in the registry for link '" + registry.getUrl()
           + "'");
     }
-    currentRegistries.remove(RegistriesHandler.getKeyMap(registry));
+    currentRegistries.remove(handler.getKeyMap(registry));
     filesManager.overwriteContentAsMap(currentRegistries);
   }
   
@@ -51,7 +56,7 @@ public class KeysManagerService implements KeysManagerInterface {
   @Override
   public void update(Registry registry) {
     Map<String, Registry> currentRegistries = filesManager.getContentAsMap();
-    String key = RegistriesHandler.getKeyMap(registry);
+    String key = handler.getKeyMap(registry);
     Registry oldRegistry = currentRegistries.get(key);
     
     if (oldRegistry == null) {

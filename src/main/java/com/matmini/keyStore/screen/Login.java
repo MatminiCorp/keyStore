@@ -29,8 +29,10 @@ import com.matmini.keyStore.decypher.SecretKeyValidator;
 import com.matmini.keyStore.manager.FilesManager;
 import com.matmini.keyStore.manager.Registry;
 import com.matmini.keyStore.manager.interfaces.KeysManagerInterface;
+import com.matmini.keyStore.manager.interfaces.RegistryHandlerInterface;
 import com.matmini.keyStore.manager.service.GFileProcessService;
 import com.matmini.keyStore.manager.service.KeysManagerService;
+import com.matmini.keyStore.manager.service.RegistryHandlerImpl;
 import com.matmini.keyStore.screen.jframes.Alerts;
 import com.matmini.keyStore.util.ConstantsParameters;
 import com.matmini.keyStore.util.CsvFileDuplicator;
@@ -188,7 +190,8 @@ public class Login {
             return;
           }
           
-          KeysManagerInterface keysManagerService = new KeysManagerService();
+          RegistryHandlerInterface handler = new RegistryHandlerImpl();
+          KeysManagerInterface keysManagerService = new KeysManagerService(handler);
           int newPassword = JOptionPane.showConfirmDialog(panel,
               "Import Google passwords?", "Confirm Process", 0);
           if (newPassword == 0) {
@@ -206,7 +209,6 @@ public class Login {
                 errorToImport.add(registry);
               }
             }
-            System.out.println();
           } else {
             return;
           }

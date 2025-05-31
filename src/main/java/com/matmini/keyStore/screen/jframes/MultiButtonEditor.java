@@ -24,8 +24,10 @@ import javax.swing.JTable;
 import com.matmini.keyStore.decypher.AESCipher128;
 import com.matmini.keyStore.manager.Registry;
 import com.matmini.keyStore.manager.interfaces.KeysManagerInterface;
+import com.matmini.keyStore.manager.interfaces.RegistryHandlerInterface;
 import com.matmini.keyStore.manager.interfaces.TableUpdateListener;
 import com.matmini.keyStore.manager.service.KeysManagerService;
+import com.matmini.keyStore.manager.service.RegistryHandlerImpl;
 import com.matmini.keyStore.screen.enums.SimpleKeyStoreTableEnum;
 import com.matmini.keyStore.util.ConstantsParameters;
 
@@ -35,13 +37,14 @@ public class MultiButtonEditor extends DefaultCellEditor {
   private JButton copyButton;
   private JButton editButton;
   private JButton removeButton;
-  private KeysManagerInterface keysManager = new KeysManagerService();
+  private RegistryHandlerInterface handler = new RegistryHandlerImpl();
+  private KeysManagerInterface keysManager;
   private List<TableUpdateListener> tableUpdateListenerList = new ArrayList<>();
   private AESCipher128 aes = AESCipher128.getInstance();
   
   public MultiButtonEditor(JCheckBox checkBox, JTable table) {
     super(checkBox);
-    
+    keysManager = new KeysManagerService(handler);
     panel = new JPanel(new GridLayout(1, 3));
     copyButton = new JButton(ConstantsParameters.ACTION_BUTTON_COPY);
     editButton = new JButton(ConstantsParameters.ACTION_BUTTON_UPDATE);

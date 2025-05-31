@@ -23,7 +23,6 @@ public class SecretKeyValidator {
       aes.decrypt(firstEntry.getValue().getPassword());
       return true;
     } catch (Exception e) {
-      e.printStackTrace();
       return false;
     }
   }
