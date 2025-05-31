@@ -11,31 +11,32 @@ import javax.swing.table.DefaultTableCellRenderer;
 import com.matmini.keyStore.util.ConstantsParameters;
 
 public class MultiButtonRenderer extends DefaultTableCellRenderer {
-    private static final long serialVersionUID = 1L;
-    private JPanel panel;
-    private JButton copyButton;
-    private JButton editButton;
-    private JButton removeButton;
-
-    public MultiButtonRenderer() {
-        panel = new JPanel(new GridLayout(1, 3));
-
-		copyButton = new JButton(ConstantsParameters.ACTION_BUTTON_COPY);
-		editButton = new JButton(ConstantsParameters.ACTION_BUTTON_UPDATE);
-		removeButton = new JButton(ConstantsParameters.ACTION_BUTTON_DELETE);
-
-        panel.add(copyButton);
-        panel.add(editButton);
-        panel.add(removeButton);
+  private static final long serialVersionUID = 1L;
+  private JPanel panel;
+  private JButton copyButton;
+  private JButton editButton;
+  private JButton removeButton;
+  
+  public MultiButtonRenderer() {
+    panel = new JPanel(new GridLayout(1, 3));
+    
+    copyButton = new JButton(ConstantsParameters.ACTION_BUTTON_COPY);
+    editButton = new JButton(ConstantsParameters.ACTION_BUTTON_UPDATE);
+    removeButton = new JButton(ConstantsParameters.ACTION_BUTTON_DELETE);
+    
+    panel.add(copyButton);
+    panel.add(editButton);
+    panel.add(removeButton);
+  }
+  
+  @Override
+  public Component getTableCellRendererComponent(JTable table, Object value,
+      boolean isSelected, boolean hasFocus, int row, int column) {
+    if (isSelected) {
+      panel.setBackground(table.getSelectionBackground());
+    } else {
+      panel.setBackground(table.getBackground());
     }
-
-    @Override
-    public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-        if (isSelected) {
-            panel.setBackground(table.getSelectionBackground());
-        } else {
-            panel.setBackground(table.getBackground());
-        }
-        return panel;
-    }
+    return panel;
+  }
 }

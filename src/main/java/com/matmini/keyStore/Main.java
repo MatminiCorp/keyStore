@@ -10,17 +10,17 @@ import com.matmini.keyStore.screen.Login;
 import com.matmini.keyStore.screen.SimpleKeyStore;
 
 public class Main {
-	
-	public static void main(String[] args) {
-		EventQueue.invokeLater(new Runnable() {
-			public void run() {
-				try {
-					new Login();
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			}
-		});
-	}
-
+  
+  public static void main(String[] args) {
+    EventQueue.invokeLater(new Runnable() {
+      public void run() {
+        try {
+          new Login();
+        } catch (Exception e) {
+          e.printStackTrace();
+        }
+      }
+    });
+  }
+  
 }
